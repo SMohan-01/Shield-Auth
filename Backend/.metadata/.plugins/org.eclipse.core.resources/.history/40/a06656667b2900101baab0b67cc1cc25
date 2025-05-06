@@ -1,0 +1,168 @@
+package in.mohan.shieldauth.controller;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import in.mohan.shieldauth.entity.ResetPasswordEntity;
+import in.mohan.shieldauth.entity.UserEntity;
+import in.mohan.shieldauth.exception.UserProfileAlreadyExistException;
+import in.mohan.shieldauth.exception.UserProfileNotExistException;
+import in.mohan.shieldauth.service.AppUserDetailService;
+import in.mohan.shieldauth.service.EMailService;
+import in.mohan.shieldauth.service.UserService;
+import in.mohan.shieldauth.utility.JwtUtility;
+import jakarta.validation.Valid;
+
+@RestController
+public class UserController {
+
+	private final AuthenticationManager authenticationManager;
+	private final UserService userService;
+	private final AppUserDetailService appUserDetailService;
+	private final JwtUtility jwtUtility;
+	private final EMailService eMailService;
+
+	@Autowired
+	public UserController(UserService userService, AuthenticationManager authenticationManager,
+			AppUserDetailService appUserDetailService, JwtUtility jwtUtility, EMailService eMailService) {
+		super();
+		this.userService = userService;
+		this.authenticationManager = authenticationManager;
+		this.appUserDetailService = appUserDetailService;
+		this.jwtUtility = jwtUtility;
+		this.eMailService = eMailService;
+	}
+
+	@PostMapping("/register")
+	public ResponseEntity<?> registerUser(@Valid @RequestBody UserEntity user) {
+		ResponseEntity<?> responseEntity;
+		try {
+			responseEntity = new ResponseEntity<>(userService.createProfile(user), HttpStatus.OK);
+			eMailService.sendWelcomeMail(user.getEmailAddress(), user.getName());
+		} catch (UserProfileAlreadyExistException exception) {
+			responseEntity = new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_ACCEPTABLE);
+		}
+		return responseEntity;
+	}
+
+	@PostMapping("/login")
+	public ResponseEntity<?> login(@RequestBody UserEntity user) {
+		ResponseEntity<?> responseEntity;
+		try {
+			authenticate(user.getEmailAddress(), user.getPassword());
+			final UserDetails userDetails = appUserDetailService.loadUserByUsername(user.getEmailAddress());
+			final String jwtToken = jwtUtility.generateToken(userDetails);
+			ResponseCookie responseCookie = ResponseCookie.from("jwt", jwtToken).httpOnly(true).path("/")
+					.maxAge(Duration.ofDays(1)).sameSite("strict").build();
+			Map<String, Object> responseBody = new HashMap<>();
+			responseBody.put("message", "Login successful");
+			responseBody.put("email", user.getEmailAddress());
+			responseBody.put("token", jwtToken);
+			return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString()).body(responseBody);
+		} catch (BadCredentialsException exception) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", true);
+			error.put("Message", "UserName or Password is incorrect");
+			responseEntity = new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+		} catch (DisabledException exception) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", true);
+			error.put("Message", "Account is Disabled");
+			responseEntity = new ResponseEntity<>(exception.getMessage(), HttpStatus.UNAUTHORIZED);
+		} catch (Exception exception) {
+			Map<String, Object> error = new HashMap<>();
+			error.put("error", true);
+			error.put("Message", "Authentication failed");
+			responseEntity = new ResponseEntity<>(exception.getMessage(), HttpStatus.UNAUTHORIZED);
+		}
+		return responseEntity;
+	}
+
+	private void authenticate(String emailAddress, String password) {
+		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(emailAddress, password));
+	}
+
+	@GetMapping("/profile")
+	public ResponseEntity<?> getProfile(
+			@CurrentSecurityContext(expression = "authentication?.name") String emailAddress) {
+		ResponseEntity<?> responseEntity;
+		try {
+			responseEntity = new ResponseEntity<>(userService.getProfile(emailAddress), HttpStatus.OK);
+		} catch (UserProfileNotExistException exception) {
+			responseEntity = new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_ACCEPTABLE);
+		}
+		return responseEntity;
+	}
+
+	@GetMapping("/is-authenticated")
+	public ResponseEntity<?> isAuthenticated(
+			@CurrentSecurityContext(expression = "authentication?.name") String emailAddress) {
+		return ResponseEntity.ok(emailAddress != null);
+	}
+
+	@PostMapping("/send-reset-otp")
+	public ResponseEntity<?> sendResetOtp(@RequestParam String emailAddress) {
+		ResponseEntity<?> responseEntity = null;
+		try {
+			userService.sendResetOtp(emailAddress);
+		} catch (UserProfileNotExistException exception) {
+			responseEntity = new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_ACCEPTABLE);
+		}
+		return responseEntity;
+	}
+
+	@PostMapping("/reset-password")
+	public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordEntity resetPasswordEntity) {
+		ResponseEntity<?> responseEntity = null;
+		try {
+			userService.resetPassword(resetPasswordEntity.getEmailAddress(), resetPasswordEntity.getNewPassword(), resetPasswordEntity.getOtp());
+		} catch (UserProfileNotExistException exception) {
+			responseEntity = new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_ACCEPTABLE);
+		}
+		return responseEntity;
+	}
+	
+	@PostMapping("/send-otp")
+	public ResponseEntity<?> sendOtp(
+			@CurrentSecurityContext(expression = "authentication?.name") String emailAddress) {
+		ResponseEntity<?> responseEntity = null;
+		try {
+			userService.sendOtp(emailAddress);
+		} catch (UserProfileNotExistException exception) {
+			responseEntity = new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_ACCEPTABLE);
+		}
+		return responseEntity;
+	}
+	
+	@PostMapping("/verify-email")
+	public ResponseEntity<?> verifyEmail(
+			@CurrentSecurityContext(expression = "authentication?.name") String emailAddress) {
+		ResponseEntity<?> responseEntity = null;
+		try {
+			userService.sendOtp(emailAddress);
+		} catch (UserProfileNotExistException exception) {
+			responseEntity = new ResponseEntity<>(exception.getMessage(), HttpStatus.NOT_ACCEPTABLE);
+		}
+		return responseEntity;
+	}
+
+	
+
+}

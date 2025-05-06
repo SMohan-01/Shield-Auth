@@ -1,0 +1,142 @@
+package in.mohan.shieldauth.service;
+
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import in.mohan.shieldauth.entity.UserEntity;
+import in.mohan.shieldauth.exception.UserProfileAlreadyExistException;
+import in.mohan.shieldauth.exception.UserProfileNotExistException;
+import in.mohan.shieldauth.repository.IUserRepository;
+
+@Service
+public class UserService implements IUserService{
+	
+	private final IUserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final EMailService eMailService;
+	
+	@Autowired
+	public UserService(IUserRepository userRepository, PasswordEncoder passwordEncoder, EMailService eMailService) {
+		super();
+		this.userRepository = userRepository;
+		this.passwordEncoder = passwordEncoder;
+		this.eMailService = eMailService;
+	}
+
+
+	@Override
+	public UserEntity createProfile(UserEntity user) throws UserProfileAlreadyExistException{
+		Optional<UserEntity> fetchedUser = userRepository.findByEmailAddress(user.getEmailAddress());
+		if(fetchedUser.isPresent()) {
+			throw new UserProfileAlreadyExistException("User with the given emailAddress Already Exist");
+		}
+		else {
+			user.setUserId(UUID.randomUUID().toString());
+			user.setPassword(passwordEncoder.encode(user.getPassword()));
+			user.setAccountVerified(false);
+			user.setVerifyOtp(null);
+			user.setVerifyOtpExpiredAt(0L);
+			user.setResetOtp(null);
+			user.setResetOtpExpiredAt(0L);
+			return userRepository.save(user);
+		}
+	}
+
+
+	@Override
+	public UserEntity getProfile(String emailAddress) throws UserProfileNotExistException {
+		Optional<UserEntity> fetchedUser = userRepository.findByEmailAddress(emailAddress);
+		if(fetchedUser.isEmpty()) {
+			throw new UserProfileNotExistException("User with the given emailAddress not Exist");
+		}
+		else {
+			return fetchedUser.get();
+		}
+	}
+
+
+	@Override
+	public void sendResetOtp(String emailAddress) throws UserProfileNotExistException {
+		Optional<UserEntity> fetchedUser = userRepository.findByEmailAddress(emailAddress);
+		String otp;
+		if(fetchedUser.isEmpty()) {
+			throw new UserProfileNotExistException("User with the given emailAddress not Exist");
+		}
+		else {
+			otp = String.valueOf(ThreadLocalRandom.current().nextInt(100000,1000000));
+			long expiryTime = System.currentTimeMillis() + (15*60*1000);
+			fetchedUser.get().setResetOtp(otp);
+			fetchedUser.get().setResetOtpExpiredAt(expiryTime);
+			userRepository.save(fetchedUser.get());
+		}
+		
+		try {
+			eMailService.sendResetOtpEmail(fetchedUser.get().getEmailAddress(), otp);
+		}
+		catch(RuntimeException exception) {
+			throw new RuntimeException("Unable to Send The Email");
+		}
+		
+	}
+
+
+	@Override
+	public void resetPassword(String emailAddress, String newPassword, String otp) throws UserProfileNotExistException {
+		Optional<UserEntity> fetchedUser = userRepository.findByEmailAddress(emailAddress);
+		UserEntity existingUser = fetchedUser.get();
+		if(fetchedUser.isEmpty()) {
+			throw new UserProfileNotExistException("User with the given emailAddress not Exist");
+		}
+		else {
+			if(existingUser.getResetOtp() == null || !existingUser.getResetOtp().equals(otp)) {
+				throw new RuntimeException("Invalid OTP");
+			}
+			if(existingUser.getResetOtpExpiredAt() < System.currentTimeMillis()) {
+				throw new RuntimeException("OTP Expired");
+			}
+			existingUser.setPassword(passwordEncoder.encode(newPassword));
+			existingUser.setResetOtp(null);
+			existingUser.setResetOtpExpiredAt(0L);
+			userRepository.save(existingUser);
+		}
+		
+	}
+
+
+	@Override
+	public void sendOtp(String emailAddress) throws UserProfileNotExistException {
+		Optional<UserEntity> fetchedUser = userRepository.findByEmailAddress(emailAddress);
+		UserEntity existingUser = fetchedUser.get();
+		if(fetchedUser.isEmpty()) {
+			throw new UserProfileNotExistException("User with the given emailAddress not Exist");
+		}
+		else {
+			if(existingUser.isAccountVerified())
+		}
+		
+	}
+
+
+	@Override
+	public void verifyOtp(String emailAddress, String otp) throws UserProfileNotExistException {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public String getLoggedInUserId(String emailAddress) throws UserProfileNotExistException {
+		Optional<UserEntity> fetchedUser = userRepository.findByEmailAddress(emailAddress);
+		if(fetchedUser.isEmpty()) {
+			throw new UserProfileNotExistException("User with the given emailAddress not Exist");
+		}
+		else {
+			return fetchedUser.get().getUserId();
+		}
+	}
+}

@@ -1,0 +1,7 @@
+package in.mohan.shieldauth.configuration;
+
+import org.springframework.security.web.AuthenticationEntryPoint;
+
+public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint{
+
+}

@@ -1,0 +1,147 @@
+/* Page container */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    padding: 2rem;
+  }
+  
+  /* Logo section */
+  .login-header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+  }
+  
+  .logo-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+  
+  .logo-link img {
+    height: 40px;
+  }
+  
+  .logo-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: black;
+  }
+  
+  /* Card container */
+  .login-card {
+    background-color: #ffffff;
+    padding: 2.5rem 2rem;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  h2 {
+    text-align: center;
+    color: #333333;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Form styles */
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+    font-weight: 500;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  
+  .form-control:focus {
+    border-color: red;
+    outline: none;
+  }
+  
+  /* Forgot password link */
+  .forgot-password {
+    text-align: right;
+    margin-top: -0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .forgot-password a {
+    font-size: 0.9rem;
+    color: red;
+    text-decoration: none;
+  }
+  
+  .forgot-password a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Login button */
+  .login-button {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    background-color: whitesmoke;
+    color: black;
+    border: solid;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .login-button:hover {
+    background-color: gainsboro;
+  }
+
+  .account-toggle {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    color: #555;
+  }
+  
+  .toggle-link {
+    color: black;
+    cursor: pointer;
+    margin-left: 0.3rem;
+    font-weight: 500;
+    text-decoration: underline;
+  }
+  
+  .toggle-link:hover {
+    color: #0056b3;
+  }
+  
+  
+  /* Responsive adjustments */
+  @media (max-width: 480px) {
+    .login-card {
+      padding: 2rem 1.5rem;
+    }
+  
+    .logo-link img {
+      height: 32px;
+    }
+  
+    .logo-text {
+      font-size: 1.25rem;
+    }
+  }
+  

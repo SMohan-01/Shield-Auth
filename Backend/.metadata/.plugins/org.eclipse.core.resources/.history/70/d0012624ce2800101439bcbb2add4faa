@@ -1,0 +1,11 @@
+package in.mohan.shieldauth.service;
+
+import in.mohan.shieldauth.entity.UserEntity;
+import in.mohan.shieldauth.exception.UserProfileAlreadyExistException;
+
+public interface IUserService {
+
+	public UserEntity createProfile(UserEntity user) throws UserProfileAlreadyExistException;
+	public UserEntity getProfile(UserEntity user) throws Us
+
+}

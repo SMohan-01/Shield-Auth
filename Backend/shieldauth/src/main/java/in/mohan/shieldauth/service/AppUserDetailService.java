@@ -1,0 +1,38 @@
+package in.mohan.shieldauth.service;
+
+import java.util.ArrayList;
+import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import in.mohan.shieldauth.entity.UserEntity;
+import in.mohan.shieldauth.repository.IUserRepository;
+
+
+@Service
+public class AppUserDetailService implements UserDetailsService{
+	
+	private final IUserRepository userRepository;
+
+	@Autowired
+	public AppUserDetailService(IUserRepository userRepository) {
+		super();
+		this.userRepository = userRepository;
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String emailAddress) throws UsernameNotFoundException {
+		Optional<UserEntity> fetchedUser = userRepository.findByEmailAddress(emailAddress);
+		if(fetchedUser.isEmpty()) {
+			throw new UsernameNotFoundException("The Given EmailAddress Not Exist");
+		}
+		else {
+			return new User(fetchedUser.get().getEmailAddress(), fetchedUser.get().getPassword(), new ArrayList<>());
+		}
+	}
+
+}

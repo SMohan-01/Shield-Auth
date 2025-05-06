@@ -1,0 +1,11 @@
+package in.mohan.shieldauth.entity;
+
+import jakarta.validation.constraints.NotBlank;
+
+public class ResetPasswordEntity {
+	
+	@NotBlank(message = "Email is Required")
+	private String emailAddress;
+	@Size(min = 6, message = "Password must be atleast 6 characters")
+	private String password;
+}

@@ -1,0 +1,5 @@
+package in.mohan.shieldauth.repository;
+
+public interface IUserRepository {
+
+}

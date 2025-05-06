@@ -1,0 +1,6 @@
+package in.mohan.shieldauth.exception;
+
+public class UserProfileAlreadyExistException extends Exception{
+	
+
+}

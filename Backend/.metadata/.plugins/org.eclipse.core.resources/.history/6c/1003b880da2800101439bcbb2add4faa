@@ -1,0 +1,15 @@
+spring.application.name = shieldauth
+server.port = 8080
+server.servlet.context-path = /api/v1 
+
+spring.datasource.url = jdbc:mysql://localhost:3306/shield_auth
+spring.datasource.username = root
+spring.datasource.password = 2002
+
+spring.jpa.hibernate.ddl-auto = update
+
+jwt.secret.key = thisisthesecretkeyievercreatedinmydevelopment
+
+spring.mail.host = smtp-relay.brevo.com
+spring.mail.port = 587
+

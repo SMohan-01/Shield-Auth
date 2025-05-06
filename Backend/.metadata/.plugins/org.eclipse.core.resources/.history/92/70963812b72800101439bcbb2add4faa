@@ -1,0 +1,10 @@
+package in.mohan.shieldauth.utility;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class JWTUtility {
+	
+	public String generateToken()
+
+}

@@ -1,0 +1,9 @@
+package in.mohan.shieldauth.exception;
+
+public class UserProfileNotExistException extends Exception{
+	
+	public UserProfileNotExistException(String message) {
+		super(message);
+	}
+
+}

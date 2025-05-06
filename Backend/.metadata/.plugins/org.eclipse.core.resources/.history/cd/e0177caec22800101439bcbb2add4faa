@@ -1,0 +1,7 @@
+package in.mohan.shieldauth.service;
+
+import org.springframework.security.core.userdetails.UserDetailsService;
+
+public class AppUserDetailService implements UserDetailsService{
+
+}

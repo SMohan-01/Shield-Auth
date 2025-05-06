@@ -1,0 +1,9 @@
+package in.mohan.shieldauth.service;
+
+import in.mohan.shieldauth.entity.UserEntity;
+
+public interface IUserService {
+	
+	public UserEntity createProfile(UserEntity user);
+
+}

@@ -1,0 +1,10 @@
+package in.mohan.shieldauth.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import in.mohan.shieldauth.entity.UserEntity;
+
+
+
+public interface IUserRepository extends JpaRepository<UserEntity, Long>{
+
+}

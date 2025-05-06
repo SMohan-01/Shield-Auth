@@ -1,0 +1,13 @@
+package in.mohan.shieldauth.entity;
+
+import jakarta.validation.constraints.NotBlank;
+
+public class ResetPasswordEntity {
+	
+	@NotBlank(message = "Email is Required")
+	private String emailAddress;
+	@NotBlank(message = "Password is Required")
+	private String newPassword;
+	@NotBlank(message = "Email is Required")
+	private String otp;
+}

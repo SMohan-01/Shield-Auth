@@ -1,0 +1,24 @@
+package in.mohan.shieldauth.service;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import in.mohan.shieldauth.repository.IUserRepository;
+
+public class AppUserDetailService implements UserDetailsService{
+	
+	private final IUserRepository userRepository;
+
+	public AppUserDetailService(IUserRepository userRepository) {
+		super();
+		this.userRepository = userRepository;
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}
